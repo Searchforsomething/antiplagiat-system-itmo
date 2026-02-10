@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 
 import requests
@@ -7,6 +8,11 @@ from google import genai
 
 from constants import OPENROUTER_MODELS, OPENROUTER_API_URL, GEMINI_MODELS, GENERATION_PROMPT_ADDITION
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
+)
+logger = logging.getLogger("LLMClient")
 
 
 class LLMClient:
@@ -24,36 +30,42 @@ class LLMClient:
             'Content-Type': 'application/json'
         }
         for model_name, model_id in OPENROUTER_MODELS.items():
-
             data = {
                 "model": model_id,
                 "messages": [{"role": "system", "content": self.role},
                              {"role": "user", "content": self.task}]
             }
 
-            response = requests.post(OPENROUTER_API_URL, data=json.dumps(data), headers=headers)
+            try:
+                response = requests.post(OPENROUTER_API_URL, data=json.dumps(data), headers=headers)
+                if response.status_code == 200:
+                    try:
+                        results[model_name] = response.json().get("choices")[0].get("message").get("content")
+                        logger.info("%s output received successfully", model_name)
 
-            if response.status_code == 200:
-                try:
-                    results[model_name] = response.json().get("choices")[0].get("message").get("content")
-                except Exception:
-                    results[model_name] = None
-            else:
-                print(f"Failed to fetch data from model {model_name}. Status Code:", response.status_code)
+                    except Exception:
+                        logger.error("Failed to parse response from model %s.", model_name)
+                else:
+                    logger.error("Failed to fetch data from model %s. Status Code: %s", model_name,
+                                 response.status_code)
+
+            except Exception:
+                logger.error(f"Failed to get response from model %s.", model_name)
 
         return results
 
-    def get_gemini_response(self) -> dict:
+    def get_gemini_responses(self) -> dict:
         gemini_client = genai.Client()
         results = {}
 
         for model_name, model_id in GEMINI_MODELS.items():
-            response = gemini_client.models.generate_content(
-                model=model_id, contents=self.role + self.task
-            )
-            print(response.text)
-
-            results[model_name] = response.text
+            try:
+                response = gemini_client.models.generate_content(
+                    model=model_id, contents=self.role + self.task
+                )
+                results[model_name] = response.text
+                logger.info("%s output received successfully", model_name)
+            except Exception:
+                logger.error("Failed to get response from model %s.", model_name)
 
         return results
-
