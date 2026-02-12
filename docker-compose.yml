@@ -1,11 +1,21 @@
+version: "3.9"
+
 services:
   ai-service:
     build: .
     container_name: ai-generator
+    environment:
+      API_UPLOAD_URL_TEMPLATE: ${API_UPLOAD_URL_TEMPLATE}
     ports:
-      - "8082:8082"
+      - "${GENERATOR_APP_HOST_PORT}:${GENERATOR_APP_CONTAINER_PORT}"
     env_file:
       - ./app/.env
     volumes:
       - ./files:/app/files
     restart: unless-stopped
+    networks:
+      - shared-net
+
+networks:
+  shared-net:
+    external: true

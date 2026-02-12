@@ -1,14 +1,16 @@
+import os
+
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 
 from app.main import main
-from app.constants import API_UPLOAD_URL_TEMPLATE
 
 load_dotenv()
 
 app = FastAPI()
 
+api_upload_url_template = os.getenv("API_UPLOAD_URL_TEMPLATE")
 
 @app.post("/api/v1/templates/create")
 async def generate(
@@ -34,7 +36,7 @@ async def generate(
     except Exception:
         raise HTTPException(status_code=400, detail="Failed to read file")
 
-    upload_url = f"{API_UPLOAD_URL_TEMPLATE}/{storage_path}/upload"
+    upload_url = f"{api_upload_url_template}/{storage_path}/upload"
 
     try:
         result = main(task_text, upload_url)
