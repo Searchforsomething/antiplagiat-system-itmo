@@ -11,7 +11,7 @@ OPENROUTER_MODELS = {
 OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions'
 
 GEMINI_MODELS = {
-    "Gemini 3 Flash": "gemini-3-flash-preview",
+    # "Gemini 3 Flash": "gemini-3-flash-preview",
 }
 API_UPLOAD_URL_TEMPLATE = "http://localhost:8080/api/v1/storage"
 GENERATION_PROMPT_ADDITION = """

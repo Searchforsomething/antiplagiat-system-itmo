@@ -11,8 +11,7 @@ from app.llm_output_parser import parse_files
 zip_dir = Path("../files")
 
 
-
-def main(task: str, upload_url: str) -> None:
+def main(task: str, upload_url: str) -> dict:
     """
     Entry point:
         1. Generate AI code from multiple models
@@ -21,12 +20,25 @@ def main(task: str, upload_url: str) -> None:
     """
     zip_dir.mkdir(parents=True, exist_ok=True)
 
+    print("zip dir created")
+
     code_files = get_ai_code(task)
+
+    print("code files created")
 
     archives = create_zip_per_model(code_files, zip_dir)
 
-    response = upload_archives(archives, upload_url)
-    print(response)
+    print("archive files created")
+
+    upload_response = upload_archives(archives, upload_url)
+    upload_success = upload_response is not None and upload_response.ok
+    upload_status = upload_response.status_code if upload_response else None
+
+    return {
+        "archives": archives,
+        "upload_success": upload_success,
+        "upload_status": upload_status
+    }
 
 
 def upload_archives(archives: List[Path], upload_url) -> requests.Response | None:
@@ -50,8 +62,8 @@ def upload_archives(archives: List[Path], upload_url) -> requests.Response | Non
     try:
         response = requests.post(upload_url, files=files_payload)
         return response
-    except Exception:
-        print("Error uploading files")
+    except Exception as e:
+        print(f"Error uploading files: {e}")
         return None
     finally:
         for _, file_tuple in files_payload:

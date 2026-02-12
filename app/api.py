@@ -10,7 +10,7 @@ load_dotenv()
 app = FastAPI()
 
 
-@app.post("/api/v1/create")
+@app.post("/api/v1/templates/create")
 async def generate(
     file: UploadFile = File(...),
     storage_path: str = Form(...)
@@ -34,26 +34,22 @@ async def generate(
     except Exception:
         raise HTTPException(status_code=400, detail="Failed to read file")
 
-    # Формируем URL загрузки
-    # Пример: http://localhost:8080/api/upload/works/lab_1
-    upload_url = f"{API_UPLOAD_URL_TEMPLATE}/{storage_path}"
+    upload_url = f"{API_UPLOAD_URL_TEMPLATE}/{storage_path}/upload"
 
     try:
-        archives = main(task_text, upload_url)
+        result = main(task_text, upload_url)
 
-        if not archives:
-            raise HTTPException(
-                status_code=500,
-                detail="No archives were generated"
-            )
+        if not result["archives"]:
+            raise HTTPException(status_code=500, detail="No archives were generated")
 
         return JSONResponse(
             status_code=200,
             content={
-                "status": "success",
+                "status": "success" if result["upload_success"] else "upload_failed",
                 "storagePath": storage_path,
                 "upload_url": upload_url,
-                "generated_archives": [str(path) for path in archives]
+                "upload_status": result["upload_status"],
+                "generated_archives": [str(path) for path in result["archives"]]
             }
         )
 
