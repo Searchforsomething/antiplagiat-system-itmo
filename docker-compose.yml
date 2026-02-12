@@ -1,0 +1,11 @@
+services:
+  ai-service:
+    build: .
+    container_name: ai-generator
+    ports:
+      - "8082:8082"
+    env_file:
+      - ./app/.env
+    volumes:
+      - ./files:/app/files
+    restart: unless-stopped

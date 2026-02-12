@@ -6,7 +6,7 @@ import requests
 from dotenv import load_dotenv
 from google import genai
 
-from constants import OPENROUTER_MODELS, OPENROUTER_API_URL, GEMINI_MODELS, GENERATION_PROMPT_ADDITION
+from app.constants import OPENROUTER_MODELS, OPENROUTER_API_URL, GEMINI_MODELS, GENERATION_PROMPT_ADDITION
 
 logging.basicConfig(
     level=logging.INFO,
